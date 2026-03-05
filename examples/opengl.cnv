@@ -1,0 +1,102 @@
+#include ("tkinter")
+#include ("math")
+#include ("time")
+#include ("numpy")
+
+width = 800
+height = 600
+
+# Cube vertices
+cube_vertices = numpy.array([
+    [-1,-1,-1],
+    [ 1,-1,-1],
+    [ 1, 1,-1],
+    [-1, 1,-1],
+    [-1,-1, 1],
+    [ 1,-1, 1],
+    [ 1, 1, 1],
+    [-1, 1, 1]
+], dtype=float)
+
+# Cube faces (lists of vertex indices)
+cube_faces = [
+    [0,1,2,3],  # back
+    [4,5,6,7],  # front
+    [0,1,5,4],  # bottom
+    [2,3,7,6],  # top
+    [0,3,7,4],  # left
+    [1,2,6,5]   # right
+]
+
+angle = 0.0
+fov = 90
+cam_z = -5.0
+light_dir = numpy.array([0,0,-1], dtype=float)  # Light coming toward camera
+
+fn rotate_vertex(v, a):
+    c = math.cos(a)
+    s = math.sin(a)
+    x = v[0]*c + v[2]*s
+    z = -v[0]*s + v[2]*c
+    return numpy.array([x, v[1], z])
+
+fn project_vertex(v):
+    scale = (height/2) / math.tan(math.radians(fov/2))
+    x = width/2 + v[0]*scale/(v[2]-cam_z)
+    y = height/2 - v[1]*scale/(v[2]-cam_z)
+    return (x, y)
+
+fn compute_normal(face, vertices):
+    v0 = vertices[face[0]]
+    v1 = vertices[face[1]]
+    v2 = vertices[face[2]]
+    edge1 = v1 - v0
+    edge2 = v2 - v0
+    normal = numpy.cross(edge1, edge2)
+    norm = numpy.linalg.norm(normal)
+    if norm != 0:
+        normal /= norm
+    return normal
+
+fn shade_color(normal):
+    intensity = max(numpy.dot(normal, light_dir), 0)
+    r = int(50 + 205*intensity)
+    g = int(50 + 205*intensity)
+    b = int(50 + 205*intensity)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+fn render_cube(canvas):
+    global angle
+    canvas.delete("all")
+    rotated_vertices = [rotate_vertex(v, angle) for v in cube_vertices]
+    projected_vertices = [project_vertex(v) for v in rotated_vertices]
+
+    # Sort faces by average Z for painter's algorithm
+    face_depths = []
+    for face in cube_faces:
+        z_avg = sum(rotated_vertices[i][2] for i in face)/len(face)
+        face_depths.append((z_avg, face))
+    face_depths.sort(key=lambda x: x[0], reverse=True)  # Draw farthest first
+
+    for _, face in face_depths:
+        normal = compute_normal(face, rotated_vertices)
+        color = shade_color(normal)
+        points = []
+        for idx in face:
+            x,y = projected_vertices[idx]
+            points.append(x)
+            points.append(y)
+        canvas.create_polygon(points, fill=color, outline="black")
+
+    angle += 0.02
+    canvas.after(16, lambda: render_cube(canvas))
+
+fn main():
+    root = tkinter.Tk()
+    root.title("Cvina Shaded Cube")
+    canvas = tkinter.Canvas(root, width=width, height=height, bg="black")
+    canvas.pack()
+    render_cube(canvas)
+    root.mainloop()
+
+main()
