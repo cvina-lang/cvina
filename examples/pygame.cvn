@@ -1,0 +1,51 @@
+#include ("pygame")
+#include ("sys")
+
+# Initialize Pygame
+fn main():
+    pygame.init()
+    
+    # Create a window
+    screen = pygame.display.set_mode((640, 480))
+    pygame.display.set_caption("Cvina Pygame Example")
+    
+    # Colors
+    WHITE = (255, 255, 255)
+    RED = (255, 0, 0)
+    
+    # Clock for FPS
+    clock = pygame.time.Clock()
+    
+    # Player square
+    x, y = 300, 220
+    width, height = 50, 50
+    speed = 5
+    
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            x -= speed
+        if keys[pygame.K_RIGHT]:
+            x += speed
+        if keys[pygame.K_UP]:
+            y -= speed
+        if keys[pygame.K_DOWN]:
+            y += speed
+        
+        # Draw
+        screen.fill(WHITE)
+        pygame.draw.rect(screen, RED, (x, y, width, height))
+        pygame.display.flip()
+        
+        clock.tick(60)
+    
+    pygame.quit()
+    sys.exit()
+
+# Run the game
+main()

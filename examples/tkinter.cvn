@@ -1,0 +1,21 @@
+#include ("tkinter")
+
+# Function to update label text
+fn say_hello():
+    label.config(text="Hello from Cvina!")
+
+# Create main window
+root = tkinter.Tk()
+root.title("Cvina Tkinter Example")
+root.geometry("300x150")
+
+# Create label
+label = tkinter.Label(root, text="Click the button!", font=("Arial", 12))
+label.pack(pady=20)
+
+# Create button
+btn = tkinter.Button(root, text="Click Me", command=say_hello)
+btn.pack()
+
+# Run the Tkinter main loop
+root.mainloop()
